@@ -70,10 +70,12 @@ export class HUD {
   }
 
   showScreen(name) {
+    // v1.2: lobby/splash/matchmaking are owned by main.js; HUD only toggles
+    // in-match UI + end screen. All screens guarded (menu was removed).
     document.body.classList.toggle('playing', name === 'hud');
-    this.e.menu.classList.toggle('hidden', name !== 'menu');
-    this.e.end.classList.toggle('hidden', name !== 'end');
-    this.e.loading.style.display = 'none';
+    if (this.e.menu) this.e.menu.classList.toggle('hidden', name !== 'menu');
+    if (this.e.end) this.e.end.classList.toggle('hidden', name !== 'end');
+    if (this.e.loading) this.e.loading.style.display = 'none';
   }
 
   setHeroBadge(def) {

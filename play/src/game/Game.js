@@ -37,7 +37,8 @@ function glowMat(color) {
   if (!m) { m = new THREE.MeshBasicMaterial({ color }); _matCache.set('g' + color, m); }
   return m;
 }
-const PROJ_COLORS = { mary: 0xf9a8d4, ember: 0xfdba74, george: 0x7dd3fc, kaito: 0xc4b5fd };
+const PROJ_COLORS = { mary: 0xf9a8d4, ember: 0xfdba74, george: 0x7dd3fc, kaito: 0xc4b5fd, raptor: 0xd9f99d, luna: 0xbae6fd, rook: 0x86efac, bram: 0xfcd34d };
+const _lobbySpark = new THREE.Vector3();
 
 function paintLabel(canvas, name, frac, ally) {
   const c = canvas.getContext('2d');
@@ -388,6 +389,7 @@ export class Game {
     for (const p of this.particles) { p.life = 0; p.m.visible = false; }
     for (const r of this.rings) { r.t = 99; r.m.visible = false; }
 
+    this.exitLobby();
     this.mode = mode; this.ranked = !!ranked;
     this.time = 0; this.state = 'playing';
     this.killStreak = []; this.bondToastShown = false; this.firstBlood = false;
@@ -438,6 +440,9 @@ export class Game {
   distToPlayer(p) { return this.player && this.player.alive ? Math.hypot(p.x - this.player.pos.x, p.z - this.player.pos.z) : 999; }
 
   update(dt) {
+    if (this.state === 'lobby') { this.updateLobby(dt); return; }
+    if (this.state === 'over') { this.updateOver(dt); return; }
+    if (this.state !== 'playing') return;
     this.time += dt;
     if (this.countT > 0) {
       this.countT -= dt;
@@ -576,6 +581,22 @@ export class Game {
         if (c.cds.s1 <= 0 && bd < 17 && roll < 0.5) this.castSkill(c, 's1');
         else if (c.cds.s2 <= 0 && ((bd < 5 && roll < 0.5) || (bd > 8 && bd < 15 && roll < 0.35))) this.castSkill(c, 's2');
         else if (c.cds.ult <= 0 && bd < 22 && (t.hp < t.maxHp * 0.55 || roll < 0.12)) this.castSkill(c, 'ult');
+      } else if (c.heroId === 'raptor') {
+        if (c.cds.s1 <= 0 && bd < 20 && roll < 0.5) this.castSkill(c, 's1');
+        else if (c.cds.s2 <= 0 && bd < 6 && roll < 0.6) this.castSkill(c, 's2');
+        else if (c.cds.ult <= 0 && bd < 24 && (t.hp < t.maxHp * 0.45 || roll < 0.12)) this.castSkill(c, 'ult');
+      } else if (c.heroId === 'bram') {
+        if (c.cds.s1 <= 0 && bd < 4.5 && roll < 0.55) this.castSkill(c, 's1');
+        else if (c.cds.s2 <= 0 && bd > 5 && bd < 15 && roll < 0.4) this.castSkill(c, 's2');
+        else if (c.cds.ult <= 0 && bd < 8 && roll < 0.2) this.castSkill(c, 'ult');
+      } else if (c.heroId === 'luna') {
+        if (c.cds.s1 <= 0 && bd < 16 && roll < 0.5) this.castSkill(c, 's1');
+        else if (c.cds.s2 <= 0 && bd < 6 && roll < 0.5) this.castSkill(c, 's2');
+        else if (c.cds.ult <= 0 && bd < 22 && (t.hp < t.maxHp * 0.55 || roll < 0.12)) this.castSkill(c, 'ult');
+      } else if (c.heroId === 'rook') {
+        if (c.cds.s1 <= 0 && c.hp < c.maxHp * 0.65 && roll < 0.7) this.castSkill(c, 's1');
+        else if (c.cds.s2 <= 0 && c.hp < c.maxHp * 0.8 && bd < 10 && roll < 0.4) this.castSkill(c, 's2');
+        else if (c.cds.ult <= 0 && c.hp < c.maxHp * 0.45 && roll < 0.6) this.castSkill(c, 'ult');
       }
       const want = c.def.ranged ? 9.5 : 2.2;
       const dx = (c.pos.x - t.pos.x) / (bd || 1), dz = (c.pos.z - t.pos.z) / (bd || 1);
@@ -846,8 +867,164 @@ export class Game {
           }
         }
       }});
+    } else if (c.heroId === 'raptor' && slot === 's1') {
+      // Deadeye Round: fast piercing rail
+      this.spawnProjectile({ from: c.pos, dir: f3, speed: 46, dmg: def.dmg, team: c.team, owner: c,
+        color: 0xd9f99d, radius: 0.5, big: true, life: 0.8, pierce: 99 });
+      this.sfx.shoot();
+      c.atkAnim = 1;
+    } else if (c.heroId === 'raptor' && slot === 's2') {
+      // Ghost Dash: reposition + haste
+      c.dashDir.copy(f3); c.dashT = 0.3; c.dashHit.clear();
+      c.speedBuffT = 2;
+      this.sfx.dash();
+    } else if (c.heroId === 'raptor' && slot === 'ult') {
+      // Railspike: full-line devastation
+      this.spawnProjectile({ from: c.pos, dir: f3, speed: 62, dmg: def.dmg, team: c.team, owner: c,
+        color: 0xa3e635, radius: 1.0, big: true, life: 0.9, pierce: 99 });
+      this.spawnRing(c.pos, 0xa3e635, 5);
+      this.engine.shake(c.isPlayer ? 0.4 : 0.15);
+      this.sfx.boom();
+      if (c.isPlayer) this.hud.toast('RAILSPIKE!', 1200);
+      c.atkAnim = 1;
+    } else if (c.heroId === 'bram' && slot === 's1') {
+      // Uppercut: arc slam + stun
+      const bf = c.facing();
+      this.spawnRing(c.pos, 0xd97706, 4.5);
+      this.burst(c.pos, 0xd97706, 14, 7, 0.4);
+      this.engine.shake(c.isPlayer ? 0.25 : 0.1);
+      this.sfx.melee(); this.sfx.hit();
+      c.atkAnim = 1;
+      for (const e of this.chars) {
+        if (!e.alive || e.team === c.team) continue;
+        const dx = e.pos.x - c.pos.x, dz = e.pos.z - c.pos.z;
+        const d = Math.hypot(dx, dz);
+        if (d > c.def.atkRange + 1.2) continue;
+        const ang = Math.acos(Math.min(1, Math.max(-1, (dx * bf.x + dz * bf.z) / (d || 1))));
+        if (ang < 1.1) {
+          e.takeDamage(def.dmg, c);
+          e.stunT = Math.max(e.stunT, 0.7);
+          e.kb.x += (dx / (d || 1)) * 7; e.kb.z += (dz / (d || 1)) * 7;
+        }
+      }
+    } else if (c.heroId === 'bram' && slot === 's2') {
+      // Bull Charge: dash + barrier
+      c.dashDir.copy(f3); c.dashT = 0.35; c.dashHit.clear();
+      c.shield = Math.max(c.shield, 100); c.shieldT = 2.5;
+      this.sfx.dash();
+      c.refreshLabel();
+    } else if (c.heroId === 'bram' && slot === 'ult') {
+      // Earthquake: triple shockwave
+      this.sfx.ultCast();
+      if (c.isPlayer) this.hud.toast('EARTHQUAKE!', 1200);
+      for (let i = 0; i < 3; i++) {
+        this.timers.push({ t: 0.15 + i * 0.3, fn: () => {
+          if (!c.alive || this.state !== 'playing') return;
+          const r = 5 + i * 2.5;
+          this.spawnRing(c.pos, 0xfbbf24, r + 0.5);
+          this.burst(c.pos, 0xd97706, 16, 9, 0.5);
+          this.sfx.boom();
+          if (c.isPlayer) this.engine.shake(0.3);
+          for (const e of this.chars) {
+            if (!e.alive || e.team === c.team) continue;
+            if (Math.hypot(e.pos.x - c.pos.x, e.pos.z - c.pos.z) < r) {
+              e.takeDamage(def.dmg, c);
+              e.stunT = Math.max(e.stunT, 0.5);
+            }
+          }
+        }});
+      }
+    } else if (c.heroId === 'luna' && slot === 's1') {
+      // Frostbolt: unerring bolt + freeze
+      const t = c.isPlayer ? this.autoTarget(c, 18) : c.ai.target;
+      if (!t) {
+        c.cds.s1 = 0;
+        if (c.isPlayer) this.hud.toast('No target in range!');
+        return;
+      }
+      this.burst(t.pos, 0xbae6fd, 12, 5, 0.4);
+      this.spawnRing(t.pos, 0x7dd3fc, 2.5);
+      this.sfx.hit();
+      t.takeDamage(def.dmg, c);
+      t.stunT = Math.max(t.stunT, 0.4);
+      c.atkAnim = 1;
+    } else if (c.heroId === 'luna' && slot === 's2') {
+      // Frost Nova: AoE + deep freeze
+      this.spawnRing(c.pos, 0xbae6fd, def.radius + 0.5);
+      this.burst(c.pos, 0xe0f2fe, 20, 8, 0.5);
+      this.sfx.boom();
+      if (c.isPlayer) this.engine.shake(0.15);
+      for (const e of this.chars) {
+        if (!e.alive || e.team === c.team) continue;
+        if (Math.hypot(e.pos.x - c.pos.x, e.pos.z - c.pos.z) < def.radius) {
+          e.takeDamage(def.dmg, c);
+          e.stunT = Math.max(e.stunT, 0.8);
+        }
+      }
+    } else if (c.heroId === 'luna' && slot === 'ult') {
+      // Blizzard: storm ticks over the fight
+      const foes = this.chars.filter((e) => e.alive && e.team !== c.team)
+        .sort((a, b) => a.pos.distanceTo(c.pos) - b.pos.distanceTo(c.pos)).slice(0, 3);
+      if (!foes.length) { c.cds.ult = 0; return; }
+      this.sfx.ultCast();
+      if (c.isPlayer) this.hud.toast('BLIZZARD!', 1200);
+      for (let i = 0; i < 5; i++) {
+        const foe = foes[i % foes.length];
+        this.timers.push({ t: 0.2 + i * 0.5, fn: () => {
+          if (this.state !== 'playing') return;
+          const at = foe.pos.clone();
+          this.spawnRing(at, 0xbae6fd, 5.5);
+          this.burst(at, 0xe0f2fe, 12, 7, 0.4);
+          this.sfx.hit();
+          for (const e of this.chars) {
+            if (!e.alive || e.team === c.team) continue;
+            if (Math.hypot(e.pos.x - at.x, e.pos.z - at.z) < 5) {
+              e.takeDamage(def.dmg, c);
+              e.stunT = Math.max(e.stunT, 0.25);
+            }
+          }
+        }});
+      }
+    } else if (c.heroId === 'rook' && slot === 's1') {
+      // Mend Pulse: heal self + nearby ally
+      c.heal(180);
+      this.spawnRing(c.pos, 0x4ade80, 5);
+      this.sfx.heal();
+      const ally = this._rookAlly(c);
+      if (ally) { ally.heal(180 * 1.2); this.spawnRing(ally.pos, 0x4ade80, 5); }
+    } else if (c.heroId === 'rook' && slot === 's2') {
+      // Aegis: barrier self + nearby ally
+      c.shield = Math.max(c.shield, 200); c.shieldT = 4;
+      c.refreshLabel();
+      this.spawnRing(c.pos, 0x22d3ee, 5);
+      this.sfx.shield();
+      const ally = this._rookAlly(c);
+      if (ally) { ally.shield = Math.max(ally.shield, 200); ally.shieldT = 4; ally.refreshLabel(); this.spawnRing(ally.pos, 0x22d3ee, 5); }
+    } else if (c.heroId === 'rook' && slot === 'ult') {
+      // Sanctuary: massive heal + cleanse
+      this.sfx.ultCast(); this.sfx.heal();
+      if (c.isPlayer) this.hud.toast('SANCTUARY!', 1200);
+      const targets = [c];
+      const ally = this._rookAlly(c);
+      if (ally) targets.push(ally);
+      for (const t of targets) {
+        t.heal(350);
+        t.stunT = 0;
+        t.speedBuffT = Math.max(t.speedBuffT, 4);
+        this.spawnRing(t.pos, 0x4ade80, 7);
+        this.spawnRing(t.pos, 0xfde047, 5);
+      }
     }
   }
+
+  _rookAlly(c) {
+    if (this.mode !== 'duo') return null;
+    for (const e of this.chars) {
+      if (e !== c && e.alive && e.team === c.team && e.pos.distanceTo(c.pos) < 15) return e;
+    }
+    return null;
+  }
+
 
   _clampToArena(c) {
     const dd = Math.hypot(c.pos.x, c.pos.z);
@@ -1152,5 +1329,117 @@ export class Game {
         rp: reward.rp, coins: reward.coins, ranked: this.ranked, tier: social.tier(),
       });
     }, win ? 1800 : 1400);
+  }
+
+  // ---------------- 3D Lobby stage (character showcase) ----------------
+  enterLobby(heroId) {
+    for (const c of this.chars) c.dispose(this.engine.scene);
+    this.chars = []; this.timers = [];
+    for (const p of this.projectiles) p.active = false;
+    for (const p of this.particles) { p.life = 0; p.m.visible = false; }
+    for (const r of this.rings) { r.t = 99; r.m.visible = false; }
+    this.exitLobby();
+    this.state = 'lobby';
+    this.time = 0;
+    this.player = null; this.ally = null; this.spectateTarget = null;
+    const scene = this.engine.scene;
+    const g = new THREE.Group();
+    g.position.set(500, 0, 0);
+    scene.add(g);
+    this.lobbyGroup = g;
+    const fresh = (m) => { m.userData.fresh = true; return m; };
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(14, 40),
+      fresh(new THREE.MeshStandardMaterial({ color: 0x101736, roughness: 0.9 })));
+    floor.rotation.x = -Math.PI / 2; g.add(floor);
+    const pod = new THREE.Mesh(new THREE.CylinderGeometry(3.1, 3.5, 0.6, 36), stdMat(0x1e2a52));
+    pod.position.y = 0.3; g.add(pod);
+    const trim = new THREE.Mesh(new THREE.RingGeometry(2.9, 3.25, 48),
+      fresh(new THREE.MeshBasicMaterial({ color: 0xf5b942, transparent: true, opacity: 0.9, side: THREE.DoubleSide })));
+    trim.rotation.x = -Math.PI / 2; trim.position.y = 0.62; g.add(trim);
+    this.lobbyTrim = trim;
+    const outer = new THREE.Mesh(new THREE.RingGeometry(6.4, 6.7, 64),
+      fresh(new THREE.MeshBasicMaterial({ color: 0x4fd6e8, transparent: true, opacity: 0.5, side: THREE.DoubleSide })));
+    outer.rotation.x = -Math.PI / 2; outer.position.y = 0.05; g.add(outer);
+    const pilG = new THREE.BoxGeometry(0.9, 5.5, 0.9);
+    const pilM = stdMat(0x1e2a52);
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + Math.PI / 4;
+      const pil = new THREE.Mesh(pilG, pilM);
+      pil.position.set(Math.cos(a) * 9.5, 2.75, Math.sin(a) * 9.5);
+      g.add(pil);
+      const cap = new THREE.Mesh(new THREE.OctahedronGeometry(0.55, 0), glowMat(i % 2 ? 0xec4899 : 0x22d3ee));
+      cap.position.set(Math.cos(a) * 9.5, 6.1, Math.sin(a) * 9.5);
+      g.add(cap);
+      this.lobbyOrbit.push({ m: cap, spin: 0.8 + i * 0.2 });
+    }
+    for (let i = 0; i < 6; i++) {
+      const cr = new THREE.Mesh(new THREE.OctahedronGeometry(0.4, 0),
+        glowMat([0x22d3ee, 0xec4899, 0xf5b942][i % 3]));
+      g.add(cr);
+      this.lobbyOrbit.push({ m: cr, ring: true, a: i / 6 * Math.PI * 2, r: 5.2, sp: 0.35 + (i % 3) * 0.12, y: 1.6 + (i % 3) * 0.7 });
+    }
+    const key = new THREE.PointLight(0xfff2d9, 60, 40, 1.6);
+    key.position.set(0, 7, 2); g.add(key);
+    const fill = new THREE.PointLight(0x4fd6e8, 40, 40, 1.6);
+    fill.position.set(-5, 3, -3); g.add(fill);
+    this.setLobbyHero(heroId);
+    this.lobbyAngle = 0.6;
+    this.lobbyFxT = 0;
+  }
+
+  setLobbyHero(heroId) {
+    if (this.lobbyFigure) { this.lobbyFigure.dispose(this.engine.scene); this.lobbyFigure = null; }
+    const palette = social.getEquippedPalette(heroId, SKINS);
+    const fig = new Character(this, { heroId, name: 'showcase', team: 0, pos: new THREE.Vector3(500, 0.6, 0), palette });
+    fig.group.userData.label.visible = false;
+    fig.group.userData.ring.visible = false;
+    fig.group.rotation.y = Math.PI;
+    this.lobbyFigure = fig;
+    this.lobbyHero = heroId;
+    this.burst(fig.pos, 0xffffff, 14, 5, 0.5);
+    this.spawnRing(fig.pos, 0xf5b942, 4);
+  }
+
+  exitLobby() {
+    if (this.lobbyFigure) { this.lobbyFigure.dispose(this.engine.scene); this.lobbyFigure = null; }
+    if (this.lobbyGroup) {
+      this.lobbyGroup.traverse((o) => {
+        if (o.isMesh) {
+          if (!Object.values(GEO).includes(o.geometry)) o.geometry.dispose();
+          if (o.material && o.material.userData && o.material.userData.fresh) o.material.dispose();
+        }
+      });
+      this.engine.scene.remove(this.lobbyGroup);
+      this.lobbyGroup = null;
+    }
+    this.lobbyOrbit = [];
+    this.lobbyTrim = null;
+  }
+
+  updateLobby(dt) {
+    this.time += dt;
+    this.lobbyAngle += dt * 0.28;
+    const a = this.lobbyAngle;
+    const cam = this.engine.camera;
+    cam.position.set(500 + Math.sin(a) * 8.2, 3.5, Math.cos(a) * 8.2);
+    cam.lookAt(500, 1.9, 0);
+    if (this.lobbyFigure) this.lobbyFigure.update(dt);
+    for (const o of this.lobbyOrbit) {
+      if (o.spin) o.m.rotation.y += dt * o.spin;
+      else if (o.ring) {
+        o.a += dt * o.sp;
+        o.m.position.set(Math.cos(o.a) * o.r, o.y + Math.sin(this.time * 1.5 + o.a) * 0.25, Math.sin(o.a) * o.r);
+        o.m.rotation.y += dt * 1.2;
+      }
+    }
+    if (this.lobbyTrim) this.lobbyTrim.material.opacity = 0.65 + Math.sin(this.time * 2.5) * 0.25;
+    this.lobbyFxT -= dt;
+    if (this.lobbyFxT <= 0) {
+      this.lobbyFxT = 0.4;
+      this.burst(_lobbySpark.set(500 + (Math.random() - 0.5) * 6, 0, (Math.random() - 0.5) * 6),
+        [0x22d3ee, 0xec4899, 0xf5b942][Math.floor(Math.random() * 3)], 1, 1.5, 0.8);
+    }
+    this._updateParticles(dt);
+    this._updateRings(dt);
   }
 }

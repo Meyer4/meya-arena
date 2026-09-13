@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"/>
-<title>Meya Arena — Free Fire meets Mobile Legends</title>
-<meta name="description" content="Meya Arena: third-person ability battle royale. Made with love for Mary."/>
+<title>Meya Arena</title>
+<meta name="description" content="Meya Arena: third-person ability battle royale."/>
 <meta name="theme-color" content="#0b1026"/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>"/>
 <link rel="manifest" href="./manifest.json"/>
@@ -27,7 +27,141 @@
     background:rgba(255,255,255,.65);box-shadow:0 0 6px rgba(255,255,255,.8);z-index:4;pointer-events:none;display:none;}
   body.playing #crosshair{display:block;}
 
-  /* ---------- HUD ---------- */
+  /* ================= SPLASH ================= */
+  #splash{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 50% 35%,#1c2452 0%,#0b1026 65%);cursor:pointer;}
+  #splash.hidden{display:none;}
+  #splash .ring{width:110px;height:110px;border-radius:50%;border:3px solid rgba(245,185,66,.9);
+    display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:900;color:#f5b942;
+    box-shadow:0 0 50px rgba(245,185,66,.35),inset 0 0 30px rgba(245,185,66,.15);animation:ringpulse 2s ease-in-out infinite;}
+  @keyframes ringpulse{50%{box-shadow:0 0 80px rgba(245,185,66,.6),inset 0 0 40px rgba(245,185,66,.25);}}
+  #splash h1{margin:18px 0 2px;font-size:clamp(38px,8vw,72px);font-weight:900;letter-spacing:6px;
+    background:linear-gradient(180deg,#fff,#7dd3fc 60%,#f0609a);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  #splash .sub{color:#8b96b0;font-weight:700;letter-spacing:4px;font-size:12px;}
+  #splash-bar{width:min(320px,70vw);height:10px;border-radius:6px;background:rgba(255,255,255,.12);margin-top:30px;overflow:hidden;}
+  #splash-bar-fill{height:100%;width:0%;border-radius:6px;background:linear-gradient(90deg,#f5b942,#f0609a);transition:width .2s;}
+  #splash-tip{margin-top:12px;font-size:13px;color:#8b96b0;font-weight:600;}
+  #tap-start{margin-top:16px;font-size:20px;font-weight:900;letter-spacing:3px;color:#fde047;display:none;animation:blink 1.2s infinite;}
+  @keyframes blink{50%{opacity:.4;}}
+
+  /* ================= LOBBY ================= */
+  #lobby-ui{position:fixed;inset:0;z-index:15;display:none;
+    background:linear-gradient(180deg,rgba(5,8,20,.55) 0%,transparent 25%,transparent 70%,rgba(5,8,20,.65) 100%);}
+  #lobby-ui.open{display:block;}
+  #lb-topbar{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:10px;
+    padding:calc(8px + env(safe-area-inset-top)) 12px 8px;}
+  #lb-avatar{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-size:22px;font-weight:900;color:#0b1026;border:2px solid rgba(255,255,255,.5);}
+  #lb-name{width:110px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.25);border-radius:8px;color:#fff;
+    font-weight:800;font-size:14px;padding:6px 8px;font-family:inherit;outline:none;}
+  #lb-rank{font-size:12.5px;font-weight:800;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.2);
+    padding:6px 12px;border-radius:16px;white-space:nowrap;}
+  #lb-top-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+  #lb-coins{font-size:14px;font-weight:900;color:#fde047;background:rgba(0,0,0,.45);border:1px solid rgba(245,185,66,.5);
+    padding:6px 12px;border-radius:16px;white-space:nowrap;}
+  .icon-btn{position:relative;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.25);
+    background:rgba(0,0,0,.5);color:#fff;font-size:20px;cursor:pointer;font-family:inherit;}
+  .icon-btn:active{transform:scale(.92);}
+  .icon-btn .dot{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;line-height:20px;border-radius:10px;
+    background:#ef4444;color:#fff;font-size:11px;font-weight:900;padding:0 5px;display:none;}
+  .icon-btn .dot.on{display:block;}
+  #lb-gfx-btn{font-size:11px;font-weight:900;width:auto;padding:0 12px;}
+  #lb-hero-card{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:min(230px,30vw);
+    background:rgba(5,8,20,.72);border:1px solid rgba(255,255,255,.18);border-left:4px solid var(--hc,#22d3ee);
+    border-radius:14px;padding:12px 14px;}
+  #lb-hero-card h2{margin:0;font-size:20px;} #lb-hero-card h2 span{color:var(--hc,#22d3ee);}
+  #lb-hero-role{font-size:11px;font-weight:800;letter-spacing:2px;color:#8b96b0;}
+  #lb-hero-kit{margin:8px 0 0;padding:0;list-style:none;font-size:12px;line-height:1.9;color:#cbd5e1;}
+  #lb-hero-kit b{color:#fff;}
+  #lb-hero-bars{margin-top:6px;}
+  .lb-bar{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;color:#8b96b0;margin-top:4px;}
+  .lb-bar label{width:26px;} .lb-bar .tr{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;}
+  .lb-bar .tr i{display:block;height:100%;background:var(--hc,#22d3ee);}
+  #lb-right{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:min(200px,28vw);display:flex;flex-direction:column;gap:8px;}
+  .lb-pick{display:flex;gap:8px;}
+  .lb-pick button{flex:1;padding:9px 0;border-radius:10px;border:2px solid rgba(255,255,255,.2);background:rgba(0,0,0,.5);
+    color:#cbd5e1;font-weight:900;font-size:12.5px;cursor:pointer;font-family:inherit;}
+  .lb-pick button.sel{border-color:#f5b942;color:#fde047;background:rgba(245,185,66,.14);box-shadow:0 0 14px rgba(245,185,66,.3);}
+  #lb-start{padding:16px 0;border:none;border-radius:14px;font-size:22px;font-weight:900;letter-spacing:3px;cursor:pointer;
+    color:#201400;background:linear-gradient(180deg,#ffd970,#f5a623);box-shadow:0 6px 26px rgba(245,166,35,.5);font-family:inherit;
+    clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);}
+  #lb-start:active{transform:scale(.97);}
+  #lb-start small{display:block;font-size:10px;letter-spacing:2px;font-weight:800;}
+  #hero-strip{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;overflow-x:auto;
+    padding:8px 12px calc(10px + env(safe-area-inset-bottom));scrollbar-width:none;}
+  #hero-strip::-webkit-scrollbar{display:none;}
+  .hero-chip{flex:0 0 auto;width:76px;border-radius:12px;border:2px solid rgba(255,255,255,.15);background:rgba(0,0,0,.55);
+    padding:6px 4px;text-align:center;cursor:pointer;font-family:inherit;color:#fff;}
+  .hero-chip.sel{border-color:var(--hc);box-shadow:0 0 14px var(--hg);}
+  .hero-chip .face{width:40px;height:40px;border-radius:50%;margin:0 auto 3px;border:2px solid rgba(255,255,255,.4);}
+  .hero-chip b{display:block;font-size:11px;} .hero-chip span{font-size:9px;color:#8b96b0;font-weight:700;}
+
+  /* ================= SHEETS (friends/gifts/skins) ================= */
+  #sheet-backdrop{position:fixed;inset:0;z-index:18;background:rgba(0,0,0,.6);display:none;}
+  #sheet-backdrop.open{display:block;}
+  #sheet{position:fixed;z-index:19;left:50%;bottom:0;transform:translateX(-50%);width:min(560px,96vw);max-height:82vh;
+    background:#0e1530;border:1px solid rgba(255,255,255,.15);border-bottom:none;border-radius:18px 18px 0 0;
+    display:none;flex-direction:column;overflow:hidden;}
+  #sheet.open{display:flex;}
+  #sheet-head{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1);}
+  #sheet-title{font-size:16px;font-weight:900;letter-spacing:1px;}
+  #sheet-close{margin-left:auto;width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.25);
+    background:transparent;color:#fff;font-size:16px;cursor:pointer;}
+  #sheet-body{overflow-y:auto;padding:10px 14px 20px;}
+  .rowcard{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:9px 12px;margin:7px 0;}
+  .rowcard .grow{flex:1;} .rowcard b{font-size:14px;}
+  .rowcard small{display:block;color:#8b96b0;font-size:12px;}
+  .mini{padding:7px 13px;border-radius:9px;font-weight:800;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;}
+  .mini.green{background:#16a34a;color:#fff;} .mini.red{background:transparent;border:1px solid #64748b;color:#cbd5e1;}
+  .mini.gold{background:linear-gradient(180deg,#fde047,#f59e0b);color:#0b1026;}
+  .mini.blue{background:#0369a1;color:#fff;} .mini.pink{background:#be185d;color:#fff;}
+  .mini:disabled{opacity:.45;}
+  .sec-h{font-size:12px;font-weight:900;letter-spacing:2px;color:#8b96b0;margin:12px 0 2px;}
+  .skin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .skin{border-radius:12px;padding:10px 6px;text-align:center;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);}
+  .skin.equipped{border-color:#4ade80;}
+  .skin .swatch{width:40px;height:40px;border-radius:50%;margin:0 auto 6px;border:3px solid rgba(255,255,255,.35);}
+  .skin b{font-size:12.5px;display:block;} .skin .mini{margin-top:6px;}
+  .note{font-size:12px;color:#5b6480;text-align:center;margin-top:10px;line-height:1.6;}
+  .online{font-size:11px;font-weight:800;color:#4ade80;} .offline{font-size:11px;font-weight:800;color:#5b6480;}
+
+  /* ================= MATCHMAKING + VERSUS ================= */
+  #matchmaking{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(5,8,20,.88);}
+  #matchmaking.open{display:flex;}
+  #matchmaking h2{margin:0;font-size:30px;font-weight:900;letter-spacing:3px;}
+  #mm-mode{color:#f5b942;font-weight:800;letter-spacing:2px;font-size:14px;margin-top:4px;}
+  #mm-count{font-size:64px;font-weight:900;margin:10px 0 0;color:#fff;}
+  #mm-bar{width:min(340px,72vw);height:10px;border-radius:6px;background:rgba(255,255,255,.12);margin-top:10px;overflow:hidden;}
+  #mm-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#22d3ee,#4ade80);}
+  #mm-tip{margin-top:14px;font-size:13px;color:#8b96b0;font-weight:600;}
+  #mm-cancel{margin-top:20px;padding:11px 40px;border-radius:12px;background:transparent;border:2px solid rgba(255,255,255,.3);
+    color:#fff;font-weight:800;cursor:pointer;font-family:inherit;font-size:14px;}
+  #versus{position:fixed;inset:0;z-index:21;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at center,#1c2452 0%,#0b1026 70%);}
+  #versus.open{display:flex;}
+  #versus h2{margin:0;font-size:clamp(40px,9vw,76px);font-weight:900;letter-spacing:4px;}
+  #versus h2 .vs{color:#f5b942;}
+  #vs-mode{color:#8b96b0;font-weight:800;letter-spacing:3px;font-size:13px;margin-top:6px;}
+  #vs-bar{width:min(300px,64vw);height:8px;border-radius:5px;background:rgba(255,255,255,.12);margin-top:22px;overflow:hidden;}
+  #vs-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#f5b942,#f0609a);}
+
+  /* ================= ROTATE ================= */
+  #rotate-block{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;
+    background:#0b1026;text-align:center;padding:20px;}
+  #rotate-block.open{display:flex;}
+  #rotate-block .ph{font-size:64px;animation:rot 1.6s ease-in-out infinite;}
+  @keyframes rot{0%,100%{transform:rotate(0);}50%{transform:rotate(90deg);}}
+  #rotate-block h2{margin:14px 0 4px;font-size:22px;letter-spacing:1px;}
+  #rotate-block p{color:#8b96b0;font-size:14px;margin:0;}
+
+  /* ================= ERR TOAST ================= */
+  #err-toast{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);z-index:50;display:none;max-width:92vw;
+    background:rgba(127,29,29,.95);border:1px solid #ef4444;color:#fff;font-size:12.5px;font-weight:700;
+    padding:10px 16px;border-radius:12px;}
+
+  /* ================= HUD (in-match) ================= */
   #hud-root{position:fixed;inset:0;z-index:5;pointer-events:none;display:none;
     padding:calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));}
   body.playing #hud-root{display:block;}
@@ -67,8 +201,6 @@
   #spectate-label{position:absolute;bottom:calc(150px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
     background:rgba(0,0,0,.6);border:1px solid #f472b6;color:#fbcfe8;padding:6px 16px;border-radius:18px;
     font-weight:800;font-size:14px;display:none;}
-
-  /* ---------- Abilities ---------- */
   #abilities{position:absolute;right:calc(14px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));
     width:210px;height:230px;pointer-events:none;}
   .abtn{position:absolute;border-radius:50%;border:2px solid rgba(255,255,255,.45);pointer-events:auto;cursor:pointer;
@@ -94,8 +226,6 @@
   #btn-bond.far{filter:grayscale(.8);opacity:.6;}
   #btn-bond.ready{animation:bondbeat 1s infinite;}
   @keyframes bondbeat{0%,100%{transform:scale(1);}25%{transform:scale(1.12);}}
-
-  /* ---------- Joystick ---------- */
   #joystick-zone{position:fixed;left:0;bottom:0;width:46%;height:62%;z-index:4;touch-action:none;display:none;}
   body.playing.touch #joystick-zone{display:block;}
   #joystick-base{position:absolute;width:124px;height:124px;border-radius:50%;display:none;
@@ -108,82 +238,31 @@
   body.playing:not(.touch) #desktop-hint{display:block;}
   #desktop-hint b{color:#fde047;}
 
-  /* ---------- Menu ---------- */
+  /* ================= END ================= */
   .screen{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
     background:radial-gradient(ellipse at 50% 30%,#1e1b4b 0%,#0b1026 65%);overflow-y:auto;padding:20px;}
   .screen.hidden{display:none;}
-  .orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;pointer-events:none;animation:drift 9s ease-in-out infinite alternate;}
-  #orb1{width:340px;height:340px;background:#0ea5e9;top:-80px;left:-80px;}
-  #orb2{width:300px;height:300px;background:#ec4899;bottom:-60px;right:-60px;animation-delay:-4s;}
-  @keyframes drift{to{transform:translate(50px,40px) scale(1.1);}}
-  .panel{position:relative;width:min(920px,94vw);text-align:center;padding:10px 6px 30px;}
-  .game-title{margin:0;font-size:clamp(42px,9vw,84px);font-weight:900;letter-spacing:2px;
-    background:linear-gradient(180deg,#fff,#67e8f9 55%,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent;
-    filter:drop-shadow(0 0 26px rgba(103,232,249,.35));}
-  .tagline{margin:6px 0 2px;color:#cbd5e1;font-weight:600;font-size:clamp(13px,2.6vw,17px);}
-  .love-pill{display:inline-block;margin:10px 0 4px;padding:6px 18px;border-radius:20px;font-weight:800;font-size:14px;
-    background:rgba(236,72,153,.15);border:1px solid #ec4899;color:#fbcfe8;}
-  .section-label{margin:18px 0 8px;font-size:12px;font-weight:800;letter-spacing:3px;color:#94a3b8;text-transform:uppercase;}
-  #hero-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left;}
-  @media(max-width:600px){#hero-cards{grid-template-columns:1fr;}}
-  .hero-card{border-radius:16px;padding:14px 16px;background:rgba(15,23,42,.8);cursor:pointer;
-    border:2px solid rgba(255,255,255,.12);transition:transform .15s,border-color .15s,box-shadow .15s;}
-  .hero-card:hover{transform:translateY(-2px);}
-  .hero-card.selected{border-color:var(--hc);box-shadow:0 0 24px var(--hg);}
-  .hero-card h3{margin:0;font-size:22px;} .hero-card h3 span{color:var(--hc);}
-  .hero-title{font-size:12px;color:#94a3b8;font-weight:700;}
-  .role-chip{display:inline-block;margin-top:6px;font-size:11px;font-weight:800;padding:3px 10px;border-radius:10px;
-    background:var(--hg);color:#fff;}
-  .stat-row{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:11px;font-weight:800;color:#cbd5e1;}
-  .stat-row label{width:34px;} .stat-bar{flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden;}
-  .stat-bar i{display:block;height:100%;border-radius:4px;background:var(--hc);}
-  .skill-list{margin:10px 0 0;padding:0;list-style:none;font-size:12px;color:#e2e8f0;}
-  .skill-list li{margin:3px 0;} .skill-list b{color:var(--hc);}
-  .hero-desc{font-size:12px;color:#94a3b8;margin:8px 0 0;font-style:italic;}
-  .pill-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-  .pill{padding:9px 20px;border-radius:24px;border:2px solid rgba(255,255,255,.2);background:rgba(15,23,42,.8);
-    font-weight:800;font-size:14px;color:#e2e8f0;cursor:pointer;font-family:inherit;}
-  .pill.selected{border-color:#fbbf24;background:rgba(251,191,36,.15);color:#fde047;box-shadow:0 0 16px rgba(251,191,36,.35);}
-  #name-row{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
-  #player-name{padding:10px 16px;border-radius:12px;border:2px solid rgba(255,255,255,.2);background:rgba(15,23,42,.9);
-    color:#fff;font-weight:800;font-size:15px;width:200px;text-align:center;font-family:inherit;outline:none;}
-  #player-name:focus{border-color:#22d3ee;}
-  #btn-play{margin-top:20px;padding:16px 90px;font-size:22px;font-weight:900;letter-spacing:2px;border:none;border-radius:18px;
-    cursor:pointer;color:#0b1026;background:linear-gradient(180deg,#fde047,#f59e0b);
-    box-shadow:0 6px 30px rgba(245,158,11,.5);font-family:inherit;transition:transform .12s;}
-  #btn-play:hover{transform:scale(1.04);} #btn-play:active{transform:scale(.97);}
-  .controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;text-align:left;font-size:12.5px;}
-  @media(max-width:600px){.controls-grid{grid-template-columns:1fr;}}
-  .controls-box{background:rgba(15,23,42,.7);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 14px;line-height:1.9;color:#cbd5e1;}
-  .controls-box b{color:#fff;} .controls-box h4{margin:0 0 4px;font-size:13px;color:#67e8f9;}
-  .menu-foot{margin-top:16px;font-size:12px;color:#64748b;}
-
-  /* ---------- End screen ---------- */
-  #end-screen .panel{width:min(520px,94vw);background:rgba(15,23,42,.9);border:1px solid rgba(255,255,255,.15);
-    border-radius:24px;padding:34px 26px;box-shadow:0 20px 60px rgba(0,0,0,.6);}
-  #end-emoji{font-size:74px;line-height:1;}
-  #end-title{margin:8px 0 2px;font-size:38px;font-weight:900;}
+  #end-screen .panel{width:min(520px,94vw);background:rgba(15,23,42,.92);border:1px solid rgba(255,255,255,.15);
+    border-radius:24px;padding:30px 26px;box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center;}
+  #end-emoji{font-size:70px;line-height:1;}
+  #end-title{margin:8px 0 2px;font-size:36px;font-weight:900;}
   #end-title.win{color:#fde047;text-shadow:0 0 30px rgba(253,224,71,.5);}
   #end-title.lose{color:#f87171;}
-  #end-place{color:#cbd5e1;font-weight:700;margin-bottom:14px;}
-  #end-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 20px;}
+  #end-place{color:#cbd5e1;font-weight:700;margin-bottom:12px;}
+  #end-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 18px;}
   .end-stat{background:rgba(255,255,255,.06);border-radius:12px;padding:10px 4px;}
   .end-stat b{display:block;font-size:20px;} .end-stat span{font-size:11px;color:#94a3b8;font-weight:700;}
   .end-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-  #btn-again{padding:13px 34px;font-size:16px;font-weight:900;border:none;border-radius:14px;cursor:pointer;
-    background:linear-gradient(180deg,#4ade80,#16a34a);color:#052e16;font-family:inherit;}
-  #btn-menu2{padding:13px 34px;font-size:16px;font-weight:800;border-radius:14px;cursor:pointer;
+  #btn-again{padding:14px 40px;font-size:17px;font-weight:900;border:none;border-radius:14px;cursor:pointer;
+    background:linear-gradient(180deg,#ffd970,#f5a623);color:#201400;font-family:inherit;}
+  #btn-lobby{padding:14px 34px;font-size:15px;font-weight:800;border-radius:14px;cursor:pointer;
     background:transparent;border:2px solid rgba(255,255,255,.3);color:#fff;font-family:inherit;}
 
-  /* ---------- Loading ---------- */
-  #loading-screen{background:#0b1026;flex-direction:column;gap:18px;}
-  .spinner{width:60px;height:60px;border-radius:50%;border:5px solid rgba(255,255,255,.15);border-top-color:#22d3ee;animation:spin 1s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-  #loading-screen p{font-weight:800;color:#94a3b8;letter-spacing:2px;}
-
-  /* ---------- Demo/embed mode (website live background) ---------- */
+  /* Demo/embed mode */
   body.demo .screen,body.demo #hud-root,body.demo #look-layer,body.demo #joystick-zone,
-  body.demo #crosshair,body.demo #dmg-layer,body.demo #vignette{display:none!important;}
+  body.demo #crosshair,body.demo #dmg-layer,body.demo #vignette,body.demo #splash,
+  body.demo #lobby-ui,body.demo #sheet-backdrop,body.demo #sheet,body.demo #matchmaking,
+  body.demo #versus,body.demo #rotate-block{display:none!important;}
 </style>
 <script type="importmap">
   {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}
@@ -196,7 +275,85 @@
 <div id="vignette"></div>
 <div id="crosshair"></div>
 
-<!-- ============ HUD ============ -->
+<!-- SPLASH -->
+<div id="splash">
+  <div class="ring">M</div>
+  <h1>MEYA ARENA</h1>
+  <div class="sub">ABILITY BATTLE ROYALE</div>
+  <div id="splash-bar"><div id="splash-bar-fill"></div></div>
+  <div id="splash-tip">Loading arena…</div>
+  <div id="tap-start">TAP TO START</div>
+</div>
+
+<!-- LOBBY -->
+<div id="lobby-ui">
+  <div id="lb-topbar">
+    <div id="lb-avatar">G</div>
+    <input id="lb-name" maxlength="12" value="George"/>
+    <div id="lb-rank">RANK</div>
+    <div id="lb-top-right">
+      <div id="lb-coins">0</div>
+      <button class="icon-btn" id="lb-friends-btn">👥<span class="dot" id="lb-friends-dot"></span></button>
+      <button class="icon-btn" id="lb-gifts-btn">🎁<span class="dot" id="lb-gifts-dot"></span></button>
+      <button class="icon-btn" id="lb-skins-btn">👕</button>
+      <button class="icon-btn" id="lb-gfx-btn">AUTO</button>
+      <button class="icon-btn" id="lb-mute-btn">🔊</button>
+    </div>
+  </div>
+  <div id="lb-hero-card">
+    <h2 id="hero-name">George</h2>
+    <div id="lb-hero-role">TANK</div>
+    <ul id="lb-hero-kit"></ul>
+    <div id="lb-hero-bars"></div>
+  </div>
+  <div id="lb-right">
+    <div class="lb-pick">
+      <button id="lb-mode-classic" class="sel">CLASSIC</button>
+      <button id="lb-mode-ranked">RANKED</button>
+    </div>
+    <div class="lb-pick">
+      <button id="lb-squad-solo" class="sel">SOLO</button>
+      <button id="lb-squad-duo">DUO</button>
+    </div>
+    <button id="lb-start">START<small id="lb-start-sub">CLASSIC · SOLO</small></button>
+  </div>
+  <div id="hero-strip"></div>
+</div>
+
+<!-- SHEETS -->
+<div id="sheet-backdrop"></div>
+<div id="sheet">
+  <div id="sheet-head"><div id="sheet-title">FRIENDS</div><button id="sheet-close">✕</button></div>
+  <div id="sheet-body"></div>
+</div>
+
+<!-- MATCHMAKING -->
+<div id="matchmaking">
+  <h2>FINDING MATCH</h2>
+  <div id="mm-mode">CLASSIC · SOLO</div>
+  <div id="mm-count">1/10</div>
+  <div id="mm-bar"><div id="mm-bar-fill"></div></div>
+  <div id="mm-tip">Tip: stay inside the zone ring.</div>
+  <button id="mm-cancel">CANCEL</button>
+</div>
+
+<!-- VERSUS -->
+<div id="versus">
+  <h2>READY <span class="vs">VS</span> SET</h2>
+  <div id="vs-mode">10 FIGHTERS · ONE SURVIVOR</div>
+  <div id="vs-bar"><div id="vs-bar-fill"></div></div>
+</div>
+
+<!-- ROTATE -->
+<div id="rotate-block">
+  <div class="ph">📱</div>
+  <h2>ROTATE YOUR DEVICE</h2>
+  <p>Meya Arena is played in landscape mode.</p>
+</div>
+
+<div id="err-toast"></div>
+
+<!-- HUD -->
 <div id="hud-root">
   <div id="player-frame">
     <div id="hero-icon">G</div>
@@ -204,11 +361,11 @@
       <div id="hp-bar"><div id="hp-fill"></div></div>
       <div id="shield-fill"></div>
       <div id="hp-text">1200 / 1200</div>
-      <div id="kills-count">💀 0 kills</div>
+      <div id="kills-count">0 kills</div>
     </div>
   </div>
   <div id="top-center">
-    <div id="match-info"><span id="alive-count">👥 10</span><span id="match-timer">0:00</span></div>
+    <div id="match-info"><span id="alive-count">10</span><span id="match-timer">0:00</span></div>
     <div id="zone-pill">Zone stable</div>
   </div>
   <div id="top-right">
@@ -231,38 +388,7 @@
 </div>
 <div id="joystick-zone"><div id="joystick-base"><div id="joystick-nub"></div></div></div>
 
-<!-- ============ MAIN MENU ============ -->
-<div class="screen" id="main-menu">
-  <div class="orb" id="orb1"></div><div class="orb" id="orb2"></div>
-  <div class="panel">
-    <h1 class="game-title">MEYA ARENA</h1>
-    <p class="tagline">Third-person battle royale · Free Fire meets Mobile Legends</p>
-    <div class="love-pill">Made with ❤️ for Mary</div>
-    <div class="section-label">Choose your hero</div>
-    <div id="hero-cards"></div>
-    <div class="section-label">Mode</div>
-    <div class="pill-row" id="mode-row">
-      <button class="pill selected" data-mode="solo">Solo vs 9 Bots</button>
-      <button class="pill" data-mode="duo">Duo with Mary</button>
-    </div>
-    <div class="section-label">Graphics</div>
-    <div class="pill-row" id="gfx-row">
-      <button class="pill selected" data-q="auto">Auto (no lag)</button>
-      <button class="pill" data-q="high">High</button>
-      <button class="pill" data-q="medium">Balanced</button>
-      <button class="pill" data-q="low">Lite</button>
-    </div>
-    <div id="name-row"><input id="player-name" maxlength="12" value="George" placeholder="Your name"/></div>
-    <br/><button id="btn-play">PLAY</button>
-    <div class="controls-grid">
-      <div class="controls-box"><h4>Mobile</h4><b>Left thumb</b> — joystick to move<br/><b>Right thumb</b> — drag to look<br/><b>Buttons</b> — attack + 3 skills + ult<br/>Get close to Mary for <b>Heartlink</b></div>
-      <div class="controls-box"><h4>PC</h4><b>WASD</b> move · <b>Mouse</b> look<br/><b>Space / Click</b> attack<br/><b>Q / E / R</b> skill 1 / 2 / ult<br/><b>T</b> — Heartlink (duo)</div>
-    </div>
-    <p class="menu-foot">Survive the shrinking zone · Last one standing wins · v1.1 Heartlink — lobby, ranked, friends, gifts, skins, 4 heroes</p>
-  </div>
-</div>
-
-<!-- ============ END SCREEN ============ -->
+<!-- END -->
 <div class="screen hidden" id="end-screen">
   <div class="panel">
     <div id="end-emoji">🏆</div>
@@ -276,26 +402,28 @@
     </div>
     <div class="end-btns">
       <button id="btn-again">PLAY AGAIN</button>
-      <button id="btn-menu2">CHANGE HERO</button>
+      <button id="btn-lobby">LOBBY</button>
     </div>
   </div>
 </div>
 
-<!-- ============ LOADING ============ -->
-<div class="screen" id="loading-screen"><div class="spinner"></div><p>LOADING ARENA…</p></div>
-
 <script>
-  // Boot failsafe: if the 3D engine can't load (offline / blocked CDN),
-  // say so with a retry instead of a silent white screen.
   window.__meyaBooted = false;
+  window.__meyaError = null;
+  window.addEventListener('error', function (e) {
+    window.__meyaError = (e.message || 'load error');
+    var tip = document.getElementById('splash-tip');
+    if (tip && !window.__meyaBooted) tip.textContent = 'Error: ' + window.__meyaError + ' — tap to retry';
+    var sp = document.getElementById('splash');
+    if (sp && !window.__meyaBooted) sp.onclick = function () { location.reload(); };
+  }, true);
   setTimeout(function () {
     if (window.__meyaBooted) return;
-    var p = document.querySelector('#loading-screen p');
-    if (p) p.textContent = 'STILL LOADING — CHECK CONNECTION, THEN TAP TO RETRY';
-    var ls = document.getElementById('loading-screen');
-    if (ls) { ls.style.cursor = 'pointer'; ls.onclick = function () { location.reload(); }; }
-  }, 12000);
-  // PWA service worker (offline play + installable APK).
+    var tip = document.getElementById('splash-tip');
+    if (tip) tip.textContent = 'Still loading — check connection, then tap to retry';
+    var sp = document.getElementById('splash');
+    if (sp) sp.onclick = function () { location.reload(); };
+  }, 15000);
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('./sw.js').catch(function () {});

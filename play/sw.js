@@ -1,5 +1,5 @@
 // Meya Arena — service worker (offline support + installability for PWA/APK).
-const CACHE = 'meya-arena-v1';
+const CACHE = 'meya-arena-v2';
 const LOCAL = [
   './', './index.html', './manifest.json',
   './icon-192.png', './icon-512.png',

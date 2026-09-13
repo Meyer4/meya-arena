@@ -31,8 +31,8 @@ class SocialService {
   _load() {
     const fresh = () => ({
       id: PAL_ID(), name: 'George', coins: 300, rp: 0,
-      owned: { george: ['default'], mary: ['default'], kaito: ['default'], ember: ['default'] },
-      equipped: { george: 'default', mary: 'default', kaito: 'default', ember: 'default' },
+      owned: { george: ['default'], mary: ['default'], kaito: ['default'], ember: ['default'], raptor: ['default'], bram: ['default'], luna: ['default'], rook: ['default'] },
+      equipped: { george: 'default', mary: 'default', kaito: 'default', ember: 'default', raptor: 'default', bram: 'default', luna: 'default', rook: 'default' },
       friends: [
         { id: 'MEA-MARY', name: 'Mary', online: true, note: 'Starlight duo 💞' },
         { id: 'MEA-ZARA', name: 'Zara', online: false, note: 'Loves gifting skins' },
