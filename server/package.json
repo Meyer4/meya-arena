@@ -1,0 +1,13 @@
+{
+  "name": "meya-arena-server",
+  "version": "0.1.0",
+  "description": "Authoritative match server for Meya Arena (Phase 2)",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}

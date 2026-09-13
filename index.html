@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Meya Arena — Third-Person Ability Battle Royale</title>
+<meta name="description" content="Meya Arena is a free third-person ability battle royale for mobile and PC. Four heroes, duo combo ultimates, ranked ladder. Play instantly in your browser."/>
+<meta name="theme-color" content="#0b1026"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>"/>
+<style>
+  :root{--bg:#0b1026;--panel:#111a36;--line:rgba(255,255,255,.1);--txt:#e6ecf7;--mut:#93a0b8;--gold:#f5b942;--cyan:#4fd6e8;--pink:#f0609a;}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 22px;}
+  /* nav */
+  nav{position:sticky;top:0;z-index:20;background:rgba(11,16,38,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+  nav .wrap{display:flex;align-items:center;gap:22px;padding:13px 22px;}
+  .logo{font-weight:800;font-size:17px;letter-spacing:3px;text-decoration:none;}
+  .logo b{background:linear-gradient(90deg,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  nav .links{margin-left:auto;display:flex;gap:20px;font-size:13.5px;font-weight:600;color:var(--mut);align-items:center;}
+  nav .links a{text-decoration:none;} nav .links a:hover{color:#fff;}
+  .btn{display:inline-block;padding:12px 28px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;transition:transform .12s;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn-gold{background:linear-gradient(180deg,#ffd970,#f5a623);color:#201400;}
+  .btn-ghost{border:1px solid rgba(255,255,255,.3);color:#fff;background:rgba(255,255,255,.04);}
+  .btn-sm{padding:9px 20px;font-size:13.5px;}
+  /* hero with LIVE gameplay background */
+  .hero{position:relative;overflow:hidden;text-align:center;}
+  #live-bg{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;
+    transform:scale(1.12);filter:saturate(1.15);}
+  .hero-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,16,38,.62) 0%,rgba(11,16,38,.55) 45%,var(--bg) 100%);}
+  .hero-inner{position:relative;padding:110px 22px 90px;}
+  .kicker{display:inline-block;font-size:12px;font-weight:700;letter-spacing:3px;color:var(--cyan);
+    border:1px solid rgba(79,214,232,.4);padding:7px 16px;border-radius:20px;margin-bottom:20px;background:rgba(11,16,38,.6);}
+  .hero h1{margin:0;font-size:clamp(40px,7.5vw,76px);font-weight:800;letter-spacing:1px;line-height:1.05;text-shadow:0 4px 30px rgba(0,0,0,.6);}
+  .hero h1 .grad{background:linear-gradient(90deg,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hero .sub{color:#cfd8ea;font-size:clamp(15px,2.4vw,18.5px);max-width:620px;margin:18px auto 0;line-height:1.65;text-shadow:0 2px 10px rgba(0,0,0,.7);}
+  .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px;}
+  .live-tag{margin-top:22px;font-size:12px;font-weight:700;letter-spacing:2px;color:#9fe870;}
+  .live-tag i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4ade80;margin-right:8px;animation:blink 1.6s infinite;}
+  @keyframes blink{50%{opacity:.35;}}
+  /* stats */
+  .stats{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(255,255,255,.02);}
+  .stats .wrap{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;padding:20px 22px;}
+  .stats b{display:block;font-size:26px;} .stats span{font-size:12px;color:var(--mut);font-weight:600;letter-spacing:1px;}
+  @media(max-width:640px){.stats .wrap{grid-template-columns:repeat(2,1fr);gap:14px;}}
+  section{padding:60px 0 10px;}
+  h2.sec{font-size:30px;margin:0;letter-spacing:.5px;}
+  p.lead{color:var(--mut);margin:8px 0 0;font-size:16px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:26px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;}
+  .card h3{margin:0 0 8px;font-size:16.5px;}
+  .card h3 .n{color:var(--cyan);font-size:13px;font-weight:800;margin-right:8px;}
+  .card p{margin:0;color:var(--mut);font-size:14px;line-height:1.65;}
+  .hero-card{border-top:3px solid var(--hc);padding-top:20px;}
+  .hero-card .role{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--hc);}
+  .hero-card h3{font-size:21px;margin:6px 0 4px;}
+  .hero-card .kit{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--line);font-size:13.5px;color:var(--mut);line-height:2;}
+  .hero-card .kit b{color:var(--txt);}
+  .story{background:linear-gradient(135deg,rgba(240,96,154,.12),rgba(79,214,232,.1));
+    border:1px solid rgba(240,96,154,.35);border-radius:18px;padding:36px;margin-top:26px;text-align:center;}
+  .story h3{margin:0 0 10px;font-size:23px;}
+  .story p{color:#c4cde2;max-width:660px;margin:0 auto;line-height:1.75;font-size:15.5px;}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:26px;}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;}
+  .step .num{display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--gold);color:#201400;
+    font-weight:800;align-items:center;justify-content:center;margin-bottom:10px;font-size:15px;}
+  .step h3{margin:0 0 6px;font-size:16px;} .step p{margin:0;color:var(--mut);font-size:14px;line-height:1.65;}
+  .req{display:flex;gap:26px;flex-wrap:wrap;margin-top:18px;font-size:13.5px;color:var(--mut);}
+  .req div b{color:var(--txt);display:block;font-size:12px;letter-spacing:1.5px;margin-bottom:4px;}
+  .patch{background:#0e1530;border:1px solid var(--line);border-radius:14px;padding:24px;margin-top:26px;font-size:14px;}
+  .patch h3{margin:0 0 4px;font-size:16px;} .patch .ver{color:var(--cyan);font-weight:700;font-size:13px;}
+  .patch ul{margin:12px 0 0;padding-left:20px;color:var(--mut);line-height:2;}
+  .patch ul b{color:var(--txt);}
+  details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 20px;margin:10px 0;font-size:14.5px;}
+  details summary{font-weight:700;cursor:pointer;font-size:15px;}
+  details p{color:var(--mut);line-height:1.75;margin:10px 0 0;}
+  footer{margin-top:60px;border-top:1px solid var(--line);padding:30px 0 44px;color:#5b6480;font-size:13px;}
+  footer .wrap{display:flex;gap:20px;flex-wrap:wrap;align-items:center;}
+  footer .flinks{display:flex;gap:18px;margin-left:auto;}
+  footer a{color:#8b96b0;text-decoration:none;} footer a:hover{color:#fff;}
+  @media(max-width:700px){#live-bg{display:none;}.hero{background:radial-gradient(ellipse at 50% 0%,#232a55 0%,var(--bg) 65%);}}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="logo" href="./index.html">MEYA <b>ARENA</b></a>
+  <div class="links">
+    <a href="#features">Features</a><a href="#heroes">Heroes</a><a href="#download">Download</a><a href="#faq">FAQ</a>
+    <a class="btn btn-gold btn-sm play-link" href="#">Play now</a>
+  </div>
+</div></nav>
+
+<header class="hero">
+  <iframe id="live-bg" title="Live gameplay" scrolling="no" tabindex="-1" aria-hidden="true"></iframe>
+  <div class="hero-shade"></div>
+  <div class="hero-inner wrap">
+    <span class="kicker">FREE TO PLAY &middot; MOBILE &amp; PC</span>
+    <h1>Third-person combat.<br/><span class="grad">Legendary abilities.</span></h1>
+    <p class="sub">Meya Arena is a fast ability battle royale: drop in with 9 fighters, outplay them with game-changing ultimates, and be the last one standing when the zone closes.</p>
+    <div class="cta">
+      <a class="btn btn-gold play-link" href="#">Play in browser</a>
+      <a class="btn btn-ghost" href="#download">Download for Android</a>
+    </div>
+    <div class="live-tag"><i></i>LIVE GAMEPLAY &mdash; REAL MATCH RUNNING BEHIND THIS PAGE</div>
+  </div>
+</header>
+
+<div class="stats"><div class="wrap">
+  <div><b>4</b><span>HEROES</span></div>
+  <div><b>12</b><span>ABILITIES</span></div>
+  <div><b>60</b><span>FPS TARGET</span></div>
+  <div><b>3 MB</b><span>DOWNLOAD</span></div>
+</div></div>
+
+<div class="wrap">
+<section id="features">
+  <h2 class="sec">Built like the games you love</h2>
+  <p class="lead">Familiar if you play battle royales or MOBAs. Fresh enough to feel new.</p>
+  <div class="grid">
+    <div class="card"><h3><span class="n">01</span>Third-person battle royale</h3><p>Over-the-shoulder camera, 10 fighters, a shrinking zone and escalating stakes. Position matters as much as aim.</p></div>
+    <div class="card"><h3><span class="n">02</span>Real ability kits</h3><p>Every hero ships with two skills and a match-swinging ultimate on true cooldowns &mdash; dashes, blinks, meteors, nukes.</p></div>
+    <div class="card"><h3><span class="n">03</span>Duo combo ultimate</h3><p>Queue as a duo, stay close, and detonate Heartlink Overdrive together: a team heal, double shockwave and speed surge.</p></div>
+    <div class="card"><h3><span class="n">04</span>Ranked ladder</h3><p>Climb from Bronze to Mythic in ranked matches. Placement, kills and wins all feed your rating. Seasons coming soon.</p></div>
+    <div class="card"><h3><span class="n">05</span>Lobby, friends, gifts</h3><p>A full pre-game lobby: friend requests, giftable skins, a daily supply box and an outfit collection that shows in 3D.</p></div>
+    <div class="card"><h3><span class="n">06</span>Engineered for no lag</h3><p>An adaptive performance engine watches your frame rate and tunes resolution, shadows and effects live. Budget phones hold smooth frames.</p></div>
+  </div>
+</section>
+
+<section id="heroes">
+  <h2 class="sec">The roster</h2>
+  <p class="lead">Two flagship legends and two anime-style fighters. Every hero is free &mdash; forever.</p>
+  <div class="grid">
+    <div class="card hero-card" style="--hc:#4fd6e8">
+      <div class="role">TANK &middot; VANGUARD</div><h3>George, the Bulwark</h3>
+      <p style="margin:0;color:var(--mut);font-size:14px">Unbreakable frontline. Dives in, soaks damage, slams the earth itself.</p>
+      <ul class="kit"><li><b>Shockwave</b> &mdash; AoE slam + knockback</li><li><b>Brave Dash</b> &mdash; shield dash + barrier</li><li><b>Titan Slam (ULT)</b> &mdash; leap in, crush + stun</li></ul>
+    </div>
+    <div class="card hero-card" style="--hc:#f0609a">
+      <div class="role">RANGER &middot; BURST</div><h3>Mary, the Starlight</h3>
+      <p style="margin:0;color:var(--mut);font-size:14px">Swift skirmisher who kites danger and answers with the sky.</p>
+      <ul class="kit"><li><b>Piercing Shot</b> &mdash; bolt through a line</li><li><b>Phase Step</b> &mdash; blink + empowered shot</li><li><b>Starfall (ULT)</b> &mdash; 8-meteor barrage</li></ul>
+    </div>
+    <div class="card hero-card" style="--hc:#a78bfa">
+      <div class="role">ASSASSIN &middot; NINJA</div><h3>Kaito, the Shadow Fang</h3>
+      <p style="margin:0;color:var(--mut);font-size:14px">A blur between shadows. Strikes twice before you blink.</p>
+      <ul class="kit"><li><b>Fang Flurry</b> &mdash; lunge + double slash</li><li><b>Smoke Step</b> &mdash; vanish + blast + haste</li><li><b>Shadow Hunt (ULT)</b> &mdash; chain through 3 enemies</li></ul>
+    </div>
+    <div class="card hero-card" style="--hc:#fb923c">
+      <div class="role">MAGE &middot; BURST</div><h3>Ember, the Cinder Spirit</h3>
+      <p style="margin:0;color:var(--mut);font-size:14px">Wildfire given form. Burns brightest against the wounded.</p>
+      <ul class="kit"><li><b>Flame Lance</b> &mdash; piercing fire spear</li><li><b>Cinder Rush</b> &mdash; dash that detonates</li><li><b>Inferno Bloom (ULT)</b> &mdash; delayed sky nuke</li></ul>
+    </div>
+  </div>
+  <div class="story">
+    <h3>Built for two.</h3>
+    <p>Meya Arena started as a gift &mdash; a game built by George for Mary, starring the two of them. The duo combo ultimate, Heartlink Overdrive, is their story turned into a mechanic: stronger together than apart. Grab your person and queue up.</p>
+  </div>
+</section>
+
+<section id="download">
+  <h2 class="sec">Download &amp; install</h2>
+  <p class="lead">Free forever. No account needed. About 3 MB on Android 8 and up.</p>
+  <div class="steps">
+    <div class="step"><span class="num">1</span><h3>Get the install file</h3><p>Download the Android package below, generated from this exact site &mdash; same game, home-screen icon, fullscreen.</p></div>
+    <div class="step"><span class="num">2</span><h3>Allow the install</h3><p>Android asks to confirm installs from outside the Play Store. This is standard for every independent app &mdash; review and allow.</p></div>
+    <div class="step"><span class="num">3</span><h3>Drop in</h3><p>Open Meya Arena, pick your hero and survive the zone. Share the link with your squad.</p></div>
+  </div>
+  <div class="cta" style="margin-top:26px">
+    <a class="btn btn-gold play-link" href="#">Play now &mdash; no download</a>
+    <a class="btn btn-ghost" id="apk-btn" href="./meya-arena.apk">Download APK</a>
+  </div>
+  <div class="req">
+    <div><b>ANDROID</b>8.0+ &middot; 100 MB free &middot; 2 GB RAM recommended</div>
+    <div><b>BROWSER</b>Chrome, Edge, Safari or Firefox, 2021 or newer</div>
+    <div><b>DATA</b>One ~500 KB load, then fully offline-capable</div>
+    <div><b>STATUS</b>Google Play listing in progress</div>
+  </div>
+  <div class="patch">
+    <h3>Patch notes</h3><span class="ver">v1.1 &ldquo;Heartlink&rdquo; &mdash; September 2026</span>
+    <ul>
+      <li><b>New heroes:</b> Kaito and Ember join the roster with full kits and bot support.</li>
+      <li><b>New:</b> lobby with ranked ladder, friends, gifts, daily box and skins.</li>
+      <li><b>New:</b> original menu and battle music, synthesized in-engine.</li>
+      <li><b>Improved:</b> adaptive performance tuning for low-end devices.</li>
+      <li><b>Fixed:</b> duplicate HUD button bindings on match restart.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="faq">
+  <h2 class="sec">Questions</h2>
+  <p class="lead">Straight answers.</p>
+  <details><summary>Is it safe? Why does Android show a warning?</summary>
+    <p>Yes. Meya Arena requests internet access only &mdash; no contacts, SMS, location, camera or storage. Android shows a standard confirmation for any app installed outside the Play Store, including test builds from major studios. A Play Store listing is in progress for one-tap installs. Read the <a href="./privacy.html">privacy policy</a>.</p></details>
+  <details><summary>Can I play with friends in other countries?</summary>
+    <p>Today: battle skilled bots, duo queue with a partner bot, and climb the ranked ladder. Global real-player servers are the next milestone &mdash; the game, matchmaking design and ranked system are already built for it.</p></details>
+  <details><summary>Will it lag on my phone?</summary>
+    <p>The adaptive performance engine monitors your frame rate and retunes resolution, shadows and effects in real time. Leave Graphics on Auto and the game holds smooth frames from flagships to budget devices.</p></details>
+  <details><summary>How much data does a match use?</summary>
+    <p>Almost none. After the initial half-megabyte load, matches run entirely on your device and the game works offline.</p></details>
+  <details><summary>Who made this?</summary>
+    <p>An independent project &mdash; a playable gift that grew into a real game. George builds it; Mary inspires it.</p></details>
+</section>
+</div>
+
+<footer><div class="wrap">
+  <span>&copy; 2026 Meya Arena. All heroes, music and art are original.</span>
+  <div class="flinks"><a class="play-link" href="#">Play</a><a href="#download">Download</a><a href="./privacy.html">Privacy</a><a href="#download">Patch notes</a></div>
+</div></footer>
+
+<script>
+// Resolve the game URL across hosts (local preview, GitHub Pages, Netlify).
+(function () {
+  var cands = ['../client/index.html', './play/index.html', './client/index.html'];
+  function pick(i) {
+    if (i >= cands.length) return; // keep gradient fallback
+    fetch(cands[i], { method: 'HEAD' }).then(function (r) {
+      if (r.ok) wire(cands[i]); else pick(i + 1);
+    }).catch(function () { pick(i + 1); });
+  }
+  function wire(url) {
+    document.getElementById('live-bg').src = url + '?demo=1';
+    var links = document.querySelectorAll('.play-link');
+    for (var k = 0; k < links.length; k++) links[k].href = url;
+  }
+  pick(0);
+})();
+</script>
+</body>
+</html>
